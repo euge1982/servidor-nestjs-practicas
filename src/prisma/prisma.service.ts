@@ -9,10 +9,15 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     //Mejora los logs en la aplicacion
     private readonly logger = new Logger('PrismaService');
 
-    onModuleInit() {
+    async onModuleInit() {
         //Desde la instancia de esta clase se conecta por 
         //unica vez a la base de datos
-        this.$connect();
+        await this.$connect();
         this.logger.log('Conectado a la base de datos');
     }
+
+    async onModuleDestroy() {
+         await this.$disconnect();
+        this.logger.log('Desconectado de la base de datos');
+      }
 }
