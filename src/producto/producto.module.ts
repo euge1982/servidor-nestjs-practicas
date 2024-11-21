@@ -1,3 +1,5 @@
+//Archivo del modulo de producto
+
 import { Module } from '@nestjs/common';
 import { ProductoService } from './producto.service';
 import { ProductoController } from './producto.controller';

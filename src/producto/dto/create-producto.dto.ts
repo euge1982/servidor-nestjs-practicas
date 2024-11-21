@@ -1,4 +1,6 @@
-import { IsNotEmpty, isNumber, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+//Archivo de la clase dto de producto
+
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProductoDto {
@@ -21,6 +23,6 @@ export class CreateProductoDto {
     @ApiProperty({ description: 'Cantidad del producto', example: 10 })
     @IsNumber()
     @IsNotEmpty()
-    @Min(0)
+    @Min(0)   //Cantidad no puede ser negativa
     cantidad: number;
 }

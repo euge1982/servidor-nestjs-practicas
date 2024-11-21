@@ -1,5 +1,7 @@
+//Archivo de la clase dto de usuario
+
 import { ApiProperty } from "@nestjs/swagger";
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from "class-validator";
+import { IsEmail, IsNotEmpty, IsString, MinLength } from "class-validator";
 
 export class CreateUserDto {
     @ApiProperty({ description: 'Email del usuario', example: 'user@example.com' })
@@ -12,10 +14,4 @@ export class CreateUserDto {
     @IsNotEmpty()
     @MinLength(6)
     password: string;
-
-    @ApiProperty({ description: 'Rol del usuario', example: 'USER' })
-    @IsString()
-    @IsNotEmpty()
-    @IsEnum(['USER', 'ADMIN', 'SUPER'])
-    role: 'USER' | 'ADMIN' | 'SUPER';
 }

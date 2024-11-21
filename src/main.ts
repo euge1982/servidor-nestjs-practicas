@@ -1,3 +1,5 @@
+// Archivo principal
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -21,7 +23,7 @@ async function bootstrap() {
 
   // Configuración de Swagger
   const config = new DocumentBuilder()
-    .setTitle('API de Inventario')
+    .setTitle('API de gestión de usuarios y productos')
     .setDescription('Documentación de la API para gestión de usuarios y productos')
     .setVersion('1.0')
     .addBearerAuth(
@@ -35,4 +37,5 @@ async function bootstrap() {
   await app.listen(envs.PORT ?? 3000);
   console.log(`Server running on port ${envs.PORT}`);
 }
+
 bootstrap();

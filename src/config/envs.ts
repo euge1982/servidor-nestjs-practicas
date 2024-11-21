@@ -1,5 +1,8 @@
+//Configuramos las variables de entorno
+
 import * as joi from 'joi';
 
+//Definimos la estructura de las variables
 interface EnvVars {
     PORT: number;
     DATABASE_URL: string;
@@ -24,7 +27,7 @@ if (error) throw new Error(`Config validation error: ${error.message}`);
 //si vino el valor, lo guardamos en una variable que va a ser del tipo EnvVars
 const envVars: EnvVars = value;
 
-//Exportamos las variables
+//Exportamos las variables en un objeto
 export const envs = {
     PORT: envVars.PORT,
     DATABASE_URL: envVars.DATABASE_URL,
