@@ -1,13 +1,16 @@
 //Archivo de controlador de producto
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { ProductoService } from './producto.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Roles } from 'src/auth/decorators/roles.decorator';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiConsumes } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 
 @ApiTags('Productos')
@@ -26,10 +29,27 @@ export class ProductoController {
   @ApiOperation({ summary: 'Crea un producto' })
   @ApiResponse({ status: 201, description: 'Producto creado' })
   @ApiResponse({ status: 403, description: 'Acceso denegado' })
+  @UseInterceptors(
+    FileInterceptor('imagen', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, callback) => {
+          const unixSuffix = Date.now()+'-'+Math.round(Math.random() * 1E9);
+          const ext = extname(file.originalname);
+          const filename = `${file.fieldname}-${unixSuffix}${ext}`;
+          callback(null, filename);
+        },
+      }),
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
   @Roles('ADMIN', 'SUPER')
-  async create(@Body() dto: CreateProductoDto) {
+  async create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: CreateProductoDto) {
+      const imagePath = `uploads/${file.filename}`;
     //Se llama al servicio para crear el producto
-    return await this.productoService.create(dto);
+    return await this.productoService.create({ ...dto, imagen: imagePath });
   }
 
   /**
@@ -93,4 +113,33 @@ export class ProductoController {
     //Se llama al servicio para eliminar el producto
     return await this.productoService.remove(id);
   }
+/*
+  @Post('upload')
+  @Roles('ADMIN', 'SUPER')
+  @UseInterceptors(
+    FileInterceptor('image',{
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueName = `${Date.now()}${extname(file.originalname)}`;
+          cb(null, uniqueName);
+        },
+      }),
+      fileFilter: (req, file, cb) => {
+        const validMimeTypes = ['imagen/jpeg', 'imagen/png', 'imagen/jpg'];
+        if (validMimeTypes.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(null, false);
+        }
+      },
+    }),
+  )
+  async uploadImage(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: CreateProductoDto,
+  ) {
+    const imagePath = `/uploads/${file.filename}`;
+    return await this.productoService.create({ ...dto, imagen: imagePath });
+  }*/
 }

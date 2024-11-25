@@ -14,23 +14,7 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
-    /**
-     * 
-     * Valida el usuario
-     * @param email 
-     * @param password 
-     * @returns 
-     
-    async validateUser(email: string, password: string): Promise<any> {
-        const user = await this.userService.findByEmail(email);
-        if (user && (await bcrypt.compare(password, user.password))) {
-            const { password, ...result } = user;
-            return result;
-        }
-        return null;
-    }*/
-
-    /**
+     /**
      * 
      * Este servicio realiza el login de cualquier usuario
      * @param user que es del tipo CreateUserDto

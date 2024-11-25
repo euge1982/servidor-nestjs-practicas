@@ -14,11 +14,11 @@ export class ProductoService {
    */
   async create(createProductodto: CreateProductoDto) {
     //Desestructuramos el createProductodto
-    const { nombre, descripcion, precio, cantidad } = createProductodto;
+    const { nombre, descripcion, imagen } = createProductodto;
 
     try {
       //Llamamos a la base de datos para crear el producto
-      return await prisma.producto.create( { data: { nombre, descripcion, precio, cantidad } } );
+      return await prisma.producto.create( { data: { nombre, descripcion, imagen } } );
     } 
     catch (error) {
       //Si falla, devolvemos un error
