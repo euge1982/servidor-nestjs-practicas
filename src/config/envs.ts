@@ -1,6 +1,11 @@
 //Configuramos las variables de entorno
 
 import * as joi from 'joi';
+import * as dotenv from 'dotenv';
+
+
+//Cargamos las variables de entorno
+dotenv.config();
 
 //Definimos la estructura de las variables
 interface EnvVars {

@@ -2,14 +2,15 @@
 
 import { PrismaClient } from '@prisma/client';
 
-let prisma: PrismaClient;   // Variable para almacenar la instancia
+// Variable para almacenar la instancia de Prisma
+let prisma: PrismaClient;   
 
 try {
-    prisma = new PrismaClient();
+    prisma = new PrismaClient();   // Crea una nueva instancia de Prisma
 } 
 catch (error) {
     console.error('Error connecting to the database:', error);
-    process.exit(1); // Termina el proceso si no se puede conectar
+    process.exit(1);   // Termina el proceso si no se puede conectar
 }
 
-export { prisma };
+export { prisma };   // Exporta la instancia de Prisma

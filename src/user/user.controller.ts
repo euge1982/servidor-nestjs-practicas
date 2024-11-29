@@ -1,3 +1,5 @@
+// Archivo de controlador de usuario
+
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe} from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -13,6 +15,7 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+
   /**
    * Crea un nuevo usuario, solo con el rol USER
    * @param dto que es del tipo CreateUserDto
@@ -26,6 +29,7 @@ export class UserController {
     return await this.userService.register(dto);
   }
 
+
   /**
    * Se loguea un usuario
    * @param dto que es del tipo CreateUserDto
@@ -35,6 +39,7 @@ export class UserController {
   async login(@Body() dto: CreateUserDto) {
     return await this.userService.login(dto);
   }
+
 
   /**
    * Se encarga de buscar todos los usuarios, solo los SUPER pueden hacerlo
@@ -50,6 +55,7 @@ export class UserController {
     return await this.userService.findAll();
   }
 
+
   /**
    * Busca un usuario por su ID, solo los SUPER pueden hacerlo
    * @param id del usuario
@@ -61,9 +67,10 @@ export class UserController {
   @Roles('SUPER')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
-  async findOne(@Param('id') id: number) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
     return await this.userService.findOne(id);
   }
+
 
   /**
    * Actualiza el rol de un usuario, solo los SUPER pueden hacerlo
@@ -84,6 +91,7 @@ export class UserController {
     return await this.userService.assignRole(id, updateRoleDto.role);
   }
 
+
   /**
    * Elimina un usuario por su ID, solo los SUPER pueden hacerlo
    * @param id del usuario
@@ -95,7 +103,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @Roles('SUPER')
-  async remove(@Param('id') id: number) {
+  async remove(@Param('id', ParseIntPipe) id: number) {
     return await this.userService.remove(id);
   }
 }

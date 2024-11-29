@@ -1,4 +1,4 @@
-//Decorador para publico
+//Decorador para public, se usara en las rutas publicas
 
 import { SetMetadata } from '@nestjs/common';
 

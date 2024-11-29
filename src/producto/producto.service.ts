@@ -1,42 +1,50 @@
-//Archivo de servicios de producto
+// Archivo de servicio de producto
 
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, InternalServerErrorException } from '@nestjs/common';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
-import { prisma } from 'src/config/database';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 
 @Injectable()
 export class ProductoService {
-  constructor(private readonly prisma: PrismaService ) {}
+  constructor(private readonly prisma: PrismaService) {}
+
+
   /**
    * Crea un nuevo producto
    * @param createProductodto que es de esa clase
    * @returns el producto creado o un error
    */
   async create(createProductodto: CreateProductoDto) {
-    //Desestructuramos el createProductodto
     const { nombre, descripcion, imagen } = createProductodto;
-
+    
     try {
-      //Llamamos a la base de datos para crear el producto
-      return await this.prisma.producto.create( { data: { nombre, descripcion, imagen } } );
+      // Intentamos crear el producto en la base de datos
+      return await this.prisma.producto.create({
+        data: { nombre, descripcion, imagen },
+      });
     } 
     catch (error) {
-      //Si falla, devolvemos un error
-      throw new Error('Error al crear el producto');
+      // Si ocurre un error, lo capturamos y lanzamos un error más específico
+      throw new InternalServerErrorException('Error al crear el producto: ' + error.message);
     }
   }
+
 
   /**
    * Devuelve todos los productos
    * @returns todos los productos
    */
   async findAll() {
-    //Llamamos a la base de datos para obtener todos los productos
-    return await this.prisma.producto.findMany();
+    try {
+      return await this.prisma.producto.findMany();
+    } 
+    catch (error) {
+      throw new InternalServerErrorException('Error al obtener los productos: ' + error.message);
+    }
   }
+
 
   /**
    * Devuelve un producto por su id
@@ -44,17 +52,22 @@ export class ProductoService {
    * @returns el producto si se encuentra
    */
   async findOne(id: number) {
-    //Llamamos a la base de datos para obtener el producto
-    const producto = await this.prisma.producto.findUnique({ where: { id } });
+    try {
+      const producto = await this.prisma.producto.findUnique({ where: { id } });
+      
+      // Si no se encuentra, lanzamos una excepción NotFoundException
+      if (!producto) {
+        throw new NotFoundException('Producto no encontrado');
+      }
 
-    //Si no se encuentra, devolvemos un error
-    if (!producto) {
-      throw new NotFoundException('Producto no encontrado');
+      return producto;
+    } 
+    catch (error) {
+      // Si hubo un error de base de datos, lo capturamos
+      throw new InternalServerErrorException('Error al obtener el producto: ' + error.message);
     }
-
-    //Devolvemos el producto
-    return producto;
   }
+
 
   /**
    * Se actualiza un producto
@@ -64,31 +77,45 @@ export class ProductoService {
    */
   async update(id: number, dto: UpdateProductoDto) {
     try {
-      //Llamamos al servicio para obtener el producto
-      await this.findOne(id);
+      // Intentamos encontrar el producto
+      const productoExistente = await this.findOne(id);
+
+      // Si no existe el producto, lanzamos una excepción
+      if (!productoExistente) {
+        throw new NotFoundException('Producto no encontrado');
+      }
+
+      // Intentamos actualizar el producto
+      return await this.prisma.producto.update({
+        where: { id },
+        data: dto,
+      });
     } 
     catch (error) {
-      //Si no se encuentra, devolvemos un error
-      throw new NotFoundException('Producto no encontrado');
+      // Si hay algún error durante la actualización, lo manejamos
+      throw new InternalServerErrorException('Error al actualizar el producto: ' + error.message);
     }
-    
-    //Llamamos a la base de datos para actualizar el producto
-    return this.prisma.producto.update({ where: { id }, data: dto });
   }
 
+
   /**
-   * Se elimina un producto
+   * Elimina un producto
    * @param id del producto
-   * @returns un error sino se encuentra
+   * @returns un error si no se encuentra
    */
   async remove(id: number) {
     try {
-      //Llamamos a la base de datos para eliminar el producto
+      // Intentamos eliminar el producto
+      const producto = await this.findOne(id);
+      if (!producto) {
+        throw new NotFoundException('Producto no encontrado');
+      }
+
       return await this.prisma.producto.delete({ where: { id } });
     } 
     catch (error) {
-      //Si no se encuentra, devolvemos un error
-      throw new NotFoundException(`Producto con ID ${id} no encontrado`);
+      // Si hay un error al eliminar, lo lanzamos
+      throw new InternalServerErrorException('Error al eliminar el producto: ' + error.message);
     }
   }
 }

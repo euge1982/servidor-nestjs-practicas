@@ -23,8 +23,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,   //No permitir campos que no esten en el DTO
     })
   );
-  app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
-
+  
   // Configuración de la carpeta de archivos estáticos
   app.useStaticAssets(join(__dirname, '..', 'uploads'),{
     prefix: '/uploads',

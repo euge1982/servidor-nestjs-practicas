@@ -1,4 +1,6 @@
-import { Injectable } from '@nestjs/common';
+// Archivo de servicio de usuario
+
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Usuario, Role } from '@prisma/client';
@@ -8,71 +10,105 @@ import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class UserService {
+  private readonly saltRounds = 10;
   constructor(private readonly prisma: PrismaService) {}
+
 
   /**
    * Crea un nuevo usuario con el rol USER (por defecto)
    * @param dto que es del tipo CreateUserDto
    * @returns el usuario creado o un error
    */
-  async register(dto: CreateUserDto) {
-    // Ciframos la contraseña
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+  async register(dto: CreateUserDto): Promise<Usuario> {
+    try {
+      // Ciframos la contraseña
+      const hashedPassword = await bcrypt.hash(dto.password, this.saltRounds);
 
-    // Creamos el usuario
-    return this.prisma.usuario.create({
-      data: {
-        email: dto.email,
-        password: hashedPassword,
-        role: 'USER',   // Establece el rol predeterminado
-      }  
-    });
+      // Verificamos si el email ya está en uso
+      const existingUser = await this.prisma.usuario.findUnique({
+        where: { email: dto.email },
+      });
+      if (existingUser) {
+        throw new Error('Email already in use');
+      }
+
+      // Creamos el usuario con el rol USER por defecto
+      return await this.prisma.usuario.create({
+        data: {
+          email: dto.email,
+          password: hashedPassword,
+          role: 'USER',  // Establece el rol predeterminado
+        },
+      });
+    } 
+    catch (error) {
+      throw new Error(`Error registering user: ${error.message}`);
+    }
   }
+
 
   /**
    * Crea un nuevo usuario con el rol SUPER (por defecto)
    * @param dto que es del tipo CreateUserDto
    * @returns el usuario creado o un error
    */
-  async registerSuper(dto: CreateUserDto) {
-    // Ciframos la contraseña
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+  async registerSuper(dto: CreateUserDto): Promise<Usuario> {
+    try {
+      // Ciframos la contraseña
+      const hashedPassword = await bcrypt.hash(dto.password, this.saltRounds);
 
-    // Creamos el usuario
-    return this.prisma.usuario.create({
-      data: {
-        email: dto.email,
-        password: hashedPassword,
-        role: 'SUPER',   // Establece el rol predeterminado
-      }  
-    });
+      // Verificamos si el email ya está en uso
+      const existingUser = await this.prisma.usuario.findUnique({
+        where: { email: dto.email },
+      });
+      if (existingUser) {
+        throw new Error('Email already in use');
+      }
+
+      // Creamos el usuario con el rol SUPER por defecto
+      return await this.prisma.usuario.create({
+        data: {
+          email: dto.email,
+          password: hashedPassword,
+          role: 'SUPER',  // Establece el rol predeterminado
+        },
+      });
+    } 
+    catch (error) {
+      throw new Error(`Error registering SUPER user: ${error.message}`);
+    }
   }
+
 
   /**
    * Se encarga de loguear un usuario
    * @param dto que es del tipo CreateUserDto
-   * @returns el usuario logueado
+   * @returns el usuario logueado o un error
    */
-  async login(dto: CreateUserDto) {
-    // Buscamos el usuario por email
-    const user = await this.prisma.usuario.findUnique({
-      where: { email: dto.email },
-    });
+  async login(dto: CreateUserDto): Promise<Usuario> {
+    try {
+      // Buscamos el usuario por email
+      const user = await this.prisma.usuario.findUnique({
+        where: { email: dto.email },
+      });
 
-    // Si el usuario no existe, devolvemos un error
-    if (!user) {
-      throw new Error('User not found');
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Comprobamos que la contraseña coincida
+      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+      if (!isPasswordValid) {
+        throw new Error('Invalid password');
+      }
+
+      return user;
+    } 
+    catch (error) {
+      throw new Error(`Login failed: ${error.message}`);
     }
-
-    // Si la contraseña no coincide, devolvemos un error
-    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-    if (!isPasswordValid) {
-      throw new Error('Invalid password');
-    }
-
-    // Devolvemos el usuario
-    return user;
   }
+
 
   /**
    * Este metodo se encarga de buscar un usuario por email
@@ -86,6 +122,7 @@ export class UserService {
     });
   }
 
+
   /**
    * Cambia el rol de un usuario, solo los SUPER pueden hacerlo
    * @param id del usuario
@@ -93,48 +130,95 @@ export class UserService {
    * @returns el usuario con el nuevo rol
    */
   async assignRole(id: number, role: Role): Promise<Usuario> {
-    return this.prisma.usuario.update({
-      where: { id },
-      data: { role },
-    });
+    // Validación manual de los roles permitidos
+    const validRoles: Role[] = ['USER', 'ADMIN', 'SUPER'];
+  
+    if (!validRoles.includes(role)) {
+      // Lanza una excepción con un código de estado 400
+      throw new HttpException(
+        `Invalid role: ${role}. Allowed roles are 'USER', 'ADMIN', 'SUPER'.`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
+  
+    try {
+      // Si el rol es válido, procedemos a actualizar el usuario
+      const updatedUser = await this.prisma.usuario.update({
+        where: { id },
+        data: { role },
+      });
+  
+      return updatedUser;
+    } 
+    catch (error) {
+      // Capturamos y lanzamos errores más específicos en caso de fallos
+      throw new HttpException(
+        `Error assigning role: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
   }
+  
 
   /**
-   * Se encarga de obtener todos los usuarios
-   * @returns todos los usuarios, un array de usuarios
+   * Obtiene todos los usuarios
+   * @returns un array de usuarios
    */
   async findAll(): Promise<Usuario[]> {
-    return this.prisma.usuario.findMany();
+    try {
+      return await this.prisma.usuario.findMany();
+    } 
+    catch (error) {
+      throw new Error(`Error fetching users: ${error.message}`);
+    }
   }
 
+
   /**
-   * Se encarga de obtener un usuario por su id
+   * Obtiene un usuario por su id
    * @param id del usuario
    * @returns el usuario con ese id o un error
    */
   async findOne(id: number): Promise<Usuario> {
-    return this.prisma.usuario.findUnique({ where: { id } });
+    try {
+      return await this.prisma.usuario.findUnique({ where: { id } });
+    } 
+    catch (error) {
+      throw new Error(`Error fetching user: ${error.message}`);
+    }
   }
 
+
   /**
-   * Actualiza un usuario por su id
+   * Actualiza un usuario
    * @param id del usuario
    * @param updateUserDto los datos para actualizar
-   * @returns el usuario actualizado o un error
+   * @returns el usuario actualizado
    */
   async update(id: number, updateUserDto: UpdateUserDto): Promise<Usuario> {
-    return this.prisma.usuario.update({
-      where: { id },
-      data: updateUserDto,
-    });
+    try {
+      return await this.prisma.usuario.update({
+        where: { id },
+        data: updateUserDto,
+      });
+    } 
+    catch (error) {
+      throw new Error(`Error updating user: ${error.message}`);
+    }
   }
 
+
   /**
-   * Se encarga de eliminar un usuario por su id
+   * Elimina un usuario por su id
    * @param id del usuario
    * @returns el mensaje de que se ha eliminado el usuario o un error
    */
-  async remove(id: number) {
-    return this.prisma.usuario.delete({ where: { id } });
+  async remove(id: number): Promise<Usuario> {
+    try {
+      return await this.prisma.usuario.delete({ where: { id } });
+    } 
+    catch (error) {
+      throw new Error(`Error deleting user: ${error.message}`);
+    }
   }
 }
