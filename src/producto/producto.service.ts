@@ -4,9 +4,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { prisma } from 'src/config/database';
+import { PrismaService } from 'src/prisma/prisma.service';
+
 
 @Injectable()
 export class ProductoService {
+  constructor(private readonly prisma: PrismaService ) {}
   /**
    * Crea un nuevo producto
    * @param createProductodto que es de esa clase
@@ -18,7 +21,7 @@ export class ProductoService {
 
     try {
       //Llamamos a la base de datos para crear el producto
-      return await prisma.producto.create( { data: { nombre, descripcion, imagen } } );
+      return await this.prisma.producto.create( { data: { nombre, descripcion, imagen } } );
     } 
     catch (error) {
       //Si falla, devolvemos un error
@@ -32,7 +35,7 @@ export class ProductoService {
    */
   async findAll() {
     //Llamamos a la base de datos para obtener todos los productos
-    return await prisma.producto.findMany();
+    return await this.prisma.producto.findMany();
   }
 
   /**
@@ -42,7 +45,7 @@ export class ProductoService {
    */
   async findOne(id: number) {
     //Llamamos a la base de datos para obtener el producto
-    const producto = await prisma.producto.findUnique({ where: { id } });
+    const producto = await this.prisma.producto.findUnique({ where: { id } });
 
     //Si no se encuentra, devolvemos un error
     if (!producto) {
@@ -70,7 +73,7 @@ export class ProductoService {
     }
     
     //Llamamos a la base de datos para actualizar el producto
-    return prisma.producto.update({ where: { id }, data: dto });
+    return this.prisma.producto.update({ where: { id }, data: dto });
   }
 
   /**
@@ -81,7 +84,7 @@ export class ProductoService {
   async remove(id: number) {
     try {
       //Llamamos a la base de datos para eliminar el producto
-      return await prisma.producto.delete({ where: { id } });
+      return await this.prisma.producto.delete({ where: { id } });
     } 
     catch (error) {
       //Si no se encuentra, devolvemos un error

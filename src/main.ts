@@ -1,12 +1,13 @@
 // Archivo principal
 
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { envs } from './config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 
 async function bootstrap() {
@@ -22,6 +23,7 @@ async function bootstrap() {
       forbidNonWhitelisted: true,   //No permitir campos que no esten en el DTO
     })
   );
+  app.useGlobalGuards(new JwtAuthGuard(new Reflector()));
 
   // Configuración de la carpeta de archivos estáticos
   app.useStaticAssets(join(__dirname, '..', 'uploads'),{

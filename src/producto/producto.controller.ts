@@ -11,6 +11,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiConsumes } from '
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { Public } from 'src/auth/decorators';
 
 
 @ApiTags('Productos')
@@ -53,14 +54,15 @@ export class ProductoController {
   }
 
   /**
-   * Obtiene todos los productos, sin importar el rol
+   * Obtiene todos los productos, es publico
    * @returns todos los productos
    */
+  @Public()
   @Get()
-  @ApiOperation({ summary: 'Obtiene todos los productos' })
+  @ApiOperation({ summary: 'Obtiene todos los productos sin necesidad de loguearse' })
   @ApiResponse({ status: 200, description: 'Productos obtenidos' })
   @ApiResponse({ status: 403, description: 'Acceso denegado' })
-  @Roles('ADMIN', 'SUPER', 'USER')
+  // @Roles('ADMIN', 'SUPER', 'USER')  
   async findAll() {
     //Se llama al servicio para obtener todos los productos
     return await this.productoService.findAll();
@@ -71,11 +73,12 @@ export class ProductoController {
    * @param id el id del producto
    * @returns 
    */
+  @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Obtiene un producto por id' })
   @ApiResponse({ status: 200, description: 'Producto obtenido' })
   @ApiResponse({ status: 403, description: 'Producto no encontrado' })
-  @Roles('ADMIN', 'SUPER', 'USER')
+  //@Roles('ADMIN', 'SUPER', 'USER')
   async findOne(@Param('id', ParseIntPipe) id: number) {
     //Se llama al servicio para obtener el producto
     return await this.productoService.findOne(id);

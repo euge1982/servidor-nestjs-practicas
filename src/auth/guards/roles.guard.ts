@@ -7,19 +7,23 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { JwtPayload } from "../jwt-payload.interface";
 
 @Injectable()
-export class RolesGuard extends JwtAuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) {
-    super();
-  }
+export class RolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
 
-  //Metodo para validar los roles
   canActivate(context: ExecutionContext): boolean {
+    //Metodo para validar si el endpoint es publico
+    const isPublic = this.reflector.get<boolean>('isPublic', context.getHandler());
+    if (isPublic) {
+      return true; // Permitir acceso
+    }
+
+    //Metodo para validar los roles
     const requiredRoles = this.reflector.get<string[]>('roles', context.getHandler());
     if (!requiredRoles) {
       return true;
     }
-
-    //Obtiene el token
+  
+    //Obtiene el usuario del context
     const request = context.switchToHttp().getRequest();
     const user = request.user as JwtPayload;
 
