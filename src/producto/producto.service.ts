@@ -105,7 +105,7 @@ export class ProductoService {
    */
   async remove(id: number) {
     try {
-      // Intentamos eliminar el producto
+      // Buscamos el producto
       const producto = await this.findOne(id);
       if (!producto) {
         throw new NotFoundException('Producto no encontrado');

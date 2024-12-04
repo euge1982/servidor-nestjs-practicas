@@ -21,6 +21,12 @@ import { Public } from 'src/auth/decorators';
 export class ProductoController {
   constructor(private readonly productoService: ProductoService) {}
 
+
+  /**
+   * Crea un producto, solo los ADMIN y SUPER pueden crear
+   * @param dto que es del tipo CreateProductoDto
+   * @returns el producto creado
+   */
   @Post()
   @ApiOperation({ summary: 'Crea un producto, solo los ADMIN y SUPER pueden hacerlo' })
   @ApiResponse({ status: 201, description: 'Producto creado' })
@@ -54,6 +60,10 @@ export class ProductoController {
   }
 
 
+  /**
+   * Obtiene todos los productos, sin importar el rol
+   * @returns todos los productos
+   */
   @Public()
   @Get()
   @ApiOperation({ summary: 'Obtiene todos los productos sin necesidad de loguearse' })
@@ -69,6 +79,11 @@ export class ProductoController {
   }
 
 
+  /**
+   * Encuentra un producto por id, sin importar el rol
+   * @param id el id del producto
+   * @returns 
+   */
   @Public()
   @Get(':id')
   @ApiOperation({ summary: 'Obtiene un producto por id, sin necesidad de loguearse' })
@@ -87,7 +102,12 @@ export class ProductoController {
     }
   }
 
-
+  /**
+   * Actualiza un producto por id, solo los SUPER pueden
+   * @param id que es el id del producto
+   * @param dto que es del tipo UpdateProductoDto
+   * @returns el producto actualizado, siempre y cuando exista
+   */
   @Patch(':id')
   @ApiOperation({ summary: 'Actualiza un producto por id' })
   @ApiResponse({ status: 200, description: 'Producto actualizado' })
@@ -107,7 +127,11 @@ export class ProductoController {
     }
   }
 
-
+  /**
+   * Elimina un producto por id, solo los ADMIN y SUPER pueden eliminar
+   * @param id que es el id del producto
+   * @returns el msj de producto eliminado o producto no encontrado
+   */
   @Delete(':id')
   @ApiOperation({ summary: 'Elimina un producto por id' })
   @ApiResponse({ status: 200, description: 'Producto eliminado' })

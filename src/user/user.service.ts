@@ -11,6 +11,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 @Injectable()
 export class UserService {
   private readonly saltRounds = 10;
+  
   constructor(private readonly prisma: PrismaService) {}
 
 

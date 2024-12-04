@@ -1,13 +1,12 @@
 // Archivo principal
 
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { envs } from './config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 
 
 async function bootstrap() {
@@ -39,9 +38,11 @@ async function bootstrap() {
     ) // Agrega autenticación JWT en la documentación
     .build();
   
+  //Crea y monta la documentacion
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
+  //Iniciar el servidor
   await app.listen(envs.PORT ?? 3000);
   console.log(`Server running on port ${envs.PORT}`);
 }

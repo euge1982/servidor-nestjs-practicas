@@ -14,7 +14,7 @@ export class AuthController {
 
   /**
    * Desde este método se registra un nuevo usuario SUPER
-   * es solo para eso
+   * es solo para ese rol
    * @param dto del tipo CreateUserDto
    * @returns el registro de un usuario SUPER
    */
