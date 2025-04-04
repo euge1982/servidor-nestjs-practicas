@@ -14,6 +14,15 @@ export class UserService {
   
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Cifra una contraseña con bcrypt
+   * @param password Contraseña en texto plano
+   * @returns Contraseña cifrada
+   */
+  private async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, this.saltRounds);
+  }
+
 
   /**
    * Crea un nuevo usuario con el rol USER (por defecto)
@@ -23,14 +32,11 @@ export class UserService {
   async register(dto: CreateUserDto): Promise<Usuario> {
     try {
       // Ciframos la contraseña
-      const hashedPassword = await bcrypt.hash(dto.password, this.saltRounds);
+      const hashedPassword = await this.hashPassword(dto.password);
 
       // Verificamos si el email ya está en uso
-      const existingUser = await this.prisma.usuario.findUnique({
-        where: { email: dto.email },
-      });
-      if (existingUser) {
-        throw new Error('Email already in use');
+      if (await this.findByEmail(dto.email)) {
+        throw new HttpException('Email already in use', HttpStatus.CONFLICT);
       }
 
       // Creamos el usuario con el rol USER por defecto
@@ -38,12 +44,12 @@ export class UserService {
         data: {
           email: dto.email,
           password: hashedPassword,
-          role: 'USER',  // Establece el rol predeterminado
+          role: 'USER',
         },
       });
     } 
     catch (error) {
-      throw new Error(`Error registering user: ${error.message}`);
+      throw new HttpException(`Error registering USER user: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -56,14 +62,11 @@ export class UserService {
   async registerSuper(dto: CreateUserDto): Promise<Usuario> {
     try {
       // Ciframos la contraseña
-      const hashedPassword = await bcrypt.hash(dto.password, this.saltRounds);
+      const hashedPassword = await this.hashPassword(dto.password);
 
       // Verificamos si el email ya está en uso
-      const existingUser = await this.prisma.usuario.findUnique({
-        where: { email: dto.email },
-      });
-      if (existingUser) {
-        throw new Error('Email already in use');
+      if (await this.findByEmail(dto.email)) {
+        throw new HttpException('Email already in use', HttpStatus.CONFLICT);
       }
 
       // Creamos el usuario con el rol SUPER por defecto
@@ -71,13 +74,45 @@ export class UserService {
         data: {
           email: dto.email,
           password: hashedPassword,
-          role: 'SUPER',  // Establece el rol predeterminado
+          role: 'SUPER',
         },
       });
     } 
     catch (error) {
-      throw new Error(`Error registering SUPER user: ${error.message}`);
+      throw new HttpException(`Error registering SUPER user: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  
+  /**
+   * Este metodo se encarga de buscar un usuario por email
+   * @param email 
+   * @returns el usuario con ese email o un error
+   */
+  async findByEmail(email: string) {
+    // Buscamos el usuario por email y lo devolvemos
+    return this.prisma.usuario.findUnique({ where: { email }});
+  }
+
+
+  /**
+  * Busca un usuario por ID
+  * @param id del usuario
+  * @returns el usuario con ese id o null
+  */
+  async findById(id: number): Promise<Usuario | null> {
+    return this.prisma.usuario.findUnique({ where: { id }})
+  }
+
+
+  /**
+   * Valida que la contraseña ingresada sea correcta
+   * @param plainPassword contraseña ingresada
+   * @param hashedPassword contraseña almacenada
+   * @returns true si es correcta, false si no lo es
+   */
+  async validatePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+    return bcrypt.compare(plainPassword, hashedPassword);
   }
 
 
@@ -89,38 +124,21 @@ export class UserService {
   async login(dto: CreateUserDto): Promise<Usuario> {
     try {
       // Buscamos el usuario por email
-      const user = await this.prisma.usuario.findUnique({
-        where: { email: dto.email },
-      });
-
+      const user = await this.findByEmail(dto.email);
       if (!user) {
-        throw new Error('User not found');
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
       }
 
       // Comprobamos que la contraseña coincida
-      const isPasswordValid = await bcrypt.compare(dto.password, user.password);
-      if (!isPasswordValid) {
-        throw new Error('Invalid password');
+      if (!(await this.validatePassword(dto.password, user.password))) {
+        throw new HttpException('Invalid password', HttpStatus.UNAUTHORIZED);
       }
 
       return user;
     } 
     catch (error) {
-      throw new Error(`Login failed: ${error.message}`);
+      throw new HttpException(`Login failed: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
-  }
-
-
-  /**
-   * Este metodo se encarga de buscar un usuario por email
-   * @param email 
-   * @returns el usuario con ese email o un error
-   */
-  async findByEmail(email: string) {
-    // Buscamos el usuario por email y lo devolvemos
-    return this.prisma.usuario.findUnique({
-      where: { email },
-    });
   }
 
 
@@ -136,10 +154,7 @@ export class UserService {
   
     if (!validRoles.includes(role)) {
       // Lanza una excepción con un código de estado 400
-      throw new HttpException(
-        `Invalid role: ${role}. Allowed roles are 'USER', 'ADMIN', 'SUPER'.`,
-        HttpStatus.BAD_REQUEST
-      );
+      throw new HttpException(`Invalid role: ${role}. Allowed roles are 'USER', 'ADMIN', 'SUPER'.`, HttpStatus.BAD_REQUEST);
     }
   
     try {
@@ -153,13 +168,10 @@ export class UserService {
     } 
     catch (error) {
       // Capturamos y lanzamos errores más específicos en caso de fallos
-      throw new HttpException(
-        `Error assigning role: ${error.message}`,
-        HttpStatus.INTERNAL_SERVER_ERROR
-      );
+      throw new HttpException(`Error assigning role: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-  
+
 
   /**
    * Obtiene todos los usuarios
@@ -170,7 +182,7 @@ export class UserService {
       return await this.prisma.usuario.findMany();
     } 
     catch (error) {
-      throw new Error(`Error fetching users: ${error.message}`);
+      throw new HttpException(`Error fetching users: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -185,7 +197,7 @@ export class UserService {
       return await this.prisma.usuario.findUnique({ where: { id } });
     } 
     catch (error) {
-      throw new Error(`Error fetching user: ${error.message}`);
+      throw new HttpException(`Error fetching user: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -204,7 +216,7 @@ export class UserService {
       });
     } 
     catch (error) {
-      throw new Error(`Error updating user: ${error.message}`);
+      throw new HttpException(`Error updating user: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -219,7 +231,7 @@ export class UserService {
       return await this.prisma.usuario.delete({ where: { id } });
     } 
     catch (error) {
-      throw new Error(`Error deleting user: ${error.message}`);
+      throw new HttpException(`Error deleting user: ${error.message}`, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 }

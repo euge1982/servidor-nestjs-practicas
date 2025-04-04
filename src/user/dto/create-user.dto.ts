@@ -15,3 +15,5 @@ export class CreateUserDto {
     @MinLength(6)
     password: string;
 }
+
+//SE AGREGARAN LAS PROPIEDADES FALTANTES!!!

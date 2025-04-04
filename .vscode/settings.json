@@ -1,3 +1,4 @@
 {
-    "editor.unfoldOnClickAfterEndOfLine": false
+    "editor.unfoldOnClickAfterEndOfLine": false,
+    "postman.settings.dotenv-detection-notification-visibility": false
 }

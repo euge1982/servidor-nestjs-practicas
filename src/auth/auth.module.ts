@@ -1,4 +1,4 @@
-//Archivo del modulo de autenticación
+// Archivo del modulo de autenticación
 
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';

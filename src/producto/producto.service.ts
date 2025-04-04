@@ -16,8 +16,8 @@ export class ProductoService {
    * @param createProductodto que es de esa clase
    * @returns el producto creado o un error
    */
-  async create(createProductodto: CreateProductoDto) {
-    const { nombre, descripcion, imagen } = createProductodto;
+  async create(dto: CreateProductoDto) {
+    const { nombre, descripcion, imagen } = dto;
     
     try {
       // Intentamos crear el producto en la base de datos
@@ -56,9 +56,7 @@ export class ProductoService {
       const producto = await this.prisma.producto.findUnique({ where: { id } });
       
       // Si no se encuentra, lanzamos una excepción NotFoundException
-      if (!producto) {
-        throw new NotFoundException('Producto no encontrado');
-      }
+      if (!producto) throw new NotFoundException('Producto no encontrado');
 
       return producto;
     } 

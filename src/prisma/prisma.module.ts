@@ -1,8 +1,9 @@
-//Archivo del modulo de prisma
+// Archivo del modulo de prisma
 
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { PrismaService } from './prisma.service';
 
+@Global()   // Esto hace que este modulo sea global y se pueda usar en cualquier modulo sin tener que importarlo cada vez
 @Module({
   providers: [PrismaService],
   exports: [PrismaService],

@@ -18,30 +18,21 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-
     /**
      * Este método se encarga de validar el token
      * @param payload El payload del JWT
      * @returns El usuario correspondiente
      */
     async validate(payload: JwtPayload) {
-        try {
-            // Buscamos el usuario por email del payload
-            const user = await this.userService.findByEmail(payload.email);
+        // Buscamos el usuario por el id del payload
+        const user = await this.userService.findById(payload.sub);
 
-            // Si el usuario no existe, devolvemos una excepción
-            if (!user) {
-                throw new UnauthorizedException('User not found');
-            }
-
-            // Devolvemos el usuario
-            return user;
-        } catch (error) {
-            // Manejo de errores inesperados
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
-            throw new InternalServerErrorException('An error occurred during token validation');
+        // Si el usuario no existe, devolvemos una excepción
+        if (!user) {
+            throw new UnauthorizedException('Usuario no encontrado');
         }
+
+        // Devolvemos el usuario
+        return user;
     }
 }

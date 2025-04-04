@@ -1,4 +1,4 @@
-// Archivo principal
+// Archivo principal de la aplicación
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -11,15 +11,15 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  //Habilitar CORS
+  // Habilitar CORS
   app.enableCors();
-  //Establecer prefijo global para las rutas
+  // Establecer prefijo global para las rutas
   app.setGlobalPrefix('api/v1');
-  //Usar ValidationsPipes global
+  // Usar ValidationsPipes global
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true,  //Solo permitir los campos que esten en el DTO
-      forbidNonWhitelisted: true,   //No permitir campos que no esten en el DTO
+      whitelist: true,              // Solo permite los campos que esten en el DTO
+      forbidNonWhitelisted: true,   // No permitir campos que no esten en el DTO
     })
   );
   
@@ -34,17 +34,17 @@ async function bootstrap() {
     .setDescription('Documentación de la API para gestión de usuarios y productos')
     .setVersion('1.0')
     .addBearerAuth(
-      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, // Configura la autenticación JWT
-    ) // Agrega autenticación JWT en la documentación
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },   // Configura la autenticación JWT
+    )   // Agrega autenticación JWT en la documentación
     .build();
   
-  //Crea y monta la documentacion
+  // Crea y monta la documentacion
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
-  //Iniciar el servidor
+  // Iniciar el servidor
   await app.listen(envs.PORT ?? 3000);
-  console.log(`Server running on port ${envs.PORT}`);
+  console.log(`Servidor corriendo en puerto: ${envs.PORT}`);
 }
 
 bootstrap();

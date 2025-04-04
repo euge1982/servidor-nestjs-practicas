@@ -1,6 +1,6 @@
 // Archivo de controlador de producto
 
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, UploadedFile, UseInterceptors, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, ParseIntPipe, UploadedFile, UseInterceptors, ForbiddenException, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ProductoService } from './producto.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
@@ -49,7 +49,7 @@ export class ProductoController {
   async create(@UploadedFile() file: Express.Multer.File, @Body() dto: CreateProductoDto) {
     try {
       if (!file) {
-        throw new ForbiddenException('No image uploaded');
+        throw new BadRequestException('No image uploaded');
       }
       const imagePath = `uploads/${file.filename}`;
       return await this.productoService.create({ ...dto, imagen: imagePath });
@@ -68,7 +68,6 @@ export class ProductoController {
   @Get()
   @ApiOperation({ summary: 'Obtiene todos los productos sin necesidad de loguearse' })
   @ApiResponse({ status: 200, description: 'Productos obtenidos' })
-  @ApiResponse({ status: 403, description: 'Acceso denegado' })
   async findAll() {
     try {
       return await this.productoService.findAll();
@@ -102,6 +101,7 @@ export class ProductoController {
     }
   }
 
+
   /**
    * Actualiza un producto por id, solo los SUPER pueden
    * @param id que es el id del producto
@@ -120,6 +120,7 @@ export class ProductoController {
       if (!updatedProduct) {
         throw new NotFoundException('Product not found');
       }
+
       return updatedProduct;
     } 
     catch (error) {
@@ -127,6 +128,7 @@ export class ProductoController {
     }
   }
 
+  
   /**
    * Elimina un producto por id, solo los ADMIN y SUPER pueden eliminar
    * @param id que es el id del producto
@@ -144,6 +146,7 @@ export class ProductoController {
       if (!removedProduct) {
         throw new NotFoundException('Product not found');
       }
+
       return { message: 'Product successfully deleted' };
     } 
     catch (error) {

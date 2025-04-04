@@ -1,4 +1,4 @@
-// Archivo de controlador
+// Archivo de controlador de la app
 
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
