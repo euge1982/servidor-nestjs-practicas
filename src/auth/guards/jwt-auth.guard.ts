@@ -5,11 +5,26 @@ import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 
+/**
+ * Guard de autenticación JWT
+ * 
+ * Extiende de AuthGuard('jwt')
+ * 
+ * @class JwtAuthGuard
+ * @extends {AuthGuard} 
+ */
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   constructor(private reflector: Reflector) {
     super();
   }
+
+  /**
+   * Metodo para validar si un usuario puede acceder a una ruta
+   * 
+   * @param {ExecutionContext} context - Contexto de la solicitud 
+   * @returns {boolean | Promise<boolean> | Observable<boolean>} Indica si el usuario puede acceder a la ruta
+   */
   // Metodo para validar si un usuario puede acceder a una ruta o no
   canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
     // Validar si la ruta es pública

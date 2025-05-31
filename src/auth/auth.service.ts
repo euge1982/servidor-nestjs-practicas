@@ -16,6 +16,7 @@ export class AuthService {
 
   /**
    * Este servicio realiza el login de cualquier usuario
+   * 
    * @param user que es del tipo CreateUserDto
    * @returns el token
    */

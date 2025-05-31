@@ -11,10 +11,10 @@ import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-
   /**
    * Desde este método se registra un nuevo usuario SUPER
    * es solo para ese rol
+   * 
    * @param dto del tipo CreateUserDto
    * @returns el registro de un usuario SUPER
    */
@@ -41,6 +41,7 @@ export class AuthController {
 
   /**
    * Desde este método se loguea un usuario, de cualquier rol
+   * 
    * @param dto que es del tipo CreateUserDto
    * @returns una respuesta con el token
    */
