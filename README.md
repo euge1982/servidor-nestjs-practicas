@@ -1,6 +1,13 @@
-## Description
+## Descripcion
 Servidor-Nestjs, que maneja la gestion de usuarios y productos
 Incluye autenticacion con JWT, autorizacion por roles y se trabaja con Prisma tambien.
+
+## Tecnologias utilizadas
+- Nest.js
+- TypeScript
+
+## Objetivo
+Manejar la gestion de usuarios y productos para el proyecto de GalerIA.
 
 ## Para poder llegar a la ejecucion del proyecto:
 
